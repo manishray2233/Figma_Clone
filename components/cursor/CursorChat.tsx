@@ -8,12 +8,19 @@ const CursorChat = ({
   setCursorState,
   updateMyPresence,
 }: CursorChatProps) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
-
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateMyPresence({ message: e.target.value });
+    setCursorState({
+      mode: CursorMode.Chat,
+      previousMessage: null,
+      message: e.target.value,
+    });
+  };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       setCursorState({
         mode: CursorMode.Chat,
+        // @ts-ignore
         previousMessage: cursorState.message,
         message: "",
       });

@@ -65,6 +65,7 @@ const Live = () => {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [updateMyPresence]);
+  
   return (
     <div
       onPointerMove={handlePointerMove}
@@ -74,6 +75,7 @@ const Live = () => {
     >
       <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1>
 
+      {/* If cursor is in chat mode, show the chat cursor */}
       {cursor && (
         <CursorChat
           cursor={cursor}
@@ -89,6 +91,5 @@ const Live = () => {
 };
 
 export default Live;
-
 
 // will work on it
