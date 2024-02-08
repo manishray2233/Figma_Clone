@@ -1,9 +1,16 @@
-import { useMyPresence, useOthers } from "@/liveblocks.config";
+import {
+  useBroadcastEvent,
+  useEventListener,
+  useMyPresence,
+  useOthers,
+} from "@/liveblocks.config";
 import LiveCursors from "./cursor/LiveCursors";
 import React, { useCallback, useEffect, useState } from "react";
-import { CursorMode, CursorState, Reaction } from "@/types/type";
+import { CursorMode, CursorState, Reaction, ReactionEvent } from "@/types/type";
 import CursorChat from "./cursor/CursorChat";
 import ReactionSelector from "./reaction/ReactionButton";
+import FlyingReaction from "./reaction/FlyingReaction";
+import useInterval from "@/hooks/useInterval";
 
 const Live = () => {
   const others = useOthers();
@@ -17,10 +24,70 @@ const Live = () => {
     mode: CursorMode.Hidden,
   });
 
+  /**
+   * useBroadcastEvent is used to broadcast an event to all the other users in the room.
+   *
+   * useBroadcastEvent: https://liveblocks.io/docs/api-reference/liveblocks-react#useBroadcastEvent
+   */
+  const broadcast = useBroadcastEvent();
+
   // set the reaction of the cursor
   const setReaction = useCallback((reaction: string) => {
     setCursorState({ mode: CursorMode.Reaction, reaction, isPressed: false });
   }, []);
+
+  // Remove reactions that are not visible anymore (every 1 sec)
+  useInterval(() => {
+    setReactions((reactions) =>
+      reactions.filter((reaction) => reaction.timestamp > Date.now() - 4000)
+    );
+  }, 1000);
+
+  // Broadcast the reaction to other users (every 100ms)
+  useInterval(() => {
+    if (
+      cursorState.mode === CursorMode.Reaction &&
+      cursorState.isPressed &&
+      cursor
+    ) {
+      // concat all the reactions created on mouse click
+      setReactions((reactions) =>
+        reactions.concat([
+          {
+            point: { x: cursor.x, y: cursor.y },
+            value: cursorState.reaction,
+            timestamp: Date.now(),
+          },
+        ])
+      );
+
+      // Broadcast the reaction to other users
+      broadcast({
+        x: cursor.x,
+        y: cursor.y,
+        value: cursorState.reaction,
+      });
+    }
+  }, 50);
+
+  /**
+   * useEventListener is used to listen to events broadcasted by other
+   * users.
+   *
+   * useEventListener: https://liveblocks.io/docs/api-reference/liveblocks-react#useEventListener
+   */
+  useEventListener((eventData) => {
+    const event = eventData.event as ReactionEvent;
+    setReactions((reactions) =>
+      reactions.concat([
+        {
+          point: { x: event.x, y: event.y },
+          value: event.value,
+          timestamp: Date.now(),
+        },
+      ])
+    );
+  });
 
   // Listen to mouse events to change the cursor state
   const handlePointerMove = useCallback((event: React.PointerEvent) => {
@@ -128,6 +195,17 @@ const Live = () => {
     >
       <h1 className="text-2xl text-white">Liveblocks Figma Clone</h1>
 
+      {/* Render the reactions */}
+      {reactions.map((reaction) => (
+        <FlyingReaction
+          key={reaction.timestamp.toString()}
+          x={reaction.point.x}
+          y={reaction.point.y}
+          timestamp={reaction.timestamp}
+          value={reaction.value}
+        />
+      ))}
+
       {/* If cursor is in chat mode, show the chat cursor */}
       {cursor && (
         <CursorChat
@@ -138,6 +216,7 @@ const Live = () => {
         />
       )}
 
+      {/* If cursor is in reaction selector mode, show the reaction selector */}
       {cursorState.mode === CursorMode.ReactionSelector && (
         <ReactionSelector
           setReaction={(reaction) => {
