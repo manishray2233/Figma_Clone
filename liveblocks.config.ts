@@ -1,6 +1,6 @@
-import { createClient } from "@liveblocks/client";
+import { LiveMap, createClient } from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
-  
+
 const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY!,
 });
@@ -20,6 +20,7 @@ type Presence = {
 type Storage = {
   // author: LiveObject<{ firstName: string, lastName: string }>,
   // ...
+  canvasObjects: LiveMap<string, any>;
 };
 
 // Optionally, UserMeta represents static/readonly metadata on each user, as
@@ -86,14 +87,14 @@ export const {
   async resolveUsers({ userIds }) {
     // Used only for Comments. Return a list of user information retrieved
     // from `userIds`. This info is used in comments, mentions etc.
-    
+
     // const usersData = await __fetchUsersFromDB__(userIds);
     // 
     // return usersData.map((userData) => ({
     //   name: userData.name,
     //   avatar: userData.avatar.src,
     // }));
-    
+
     return [];
   },
   async resolveMentionSuggestions({ text, roomId }) {
@@ -104,7 +105,7 @@ export const {
     // For example when you type "@jo", `text` will be `"jo"`, and 
     // you should to return an array with John and Joanna's userIds:
     // ["john@example.com", "joanna@example.com"]
-    
+
     // const userIds = await __fetchAllUserIdsFromDB__(roomId);
     //
     // Return all userIds if no `text`
@@ -116,7 +117,7 @@ export const {
     // return userIds.filter((userId) => 
     //   userId.toLowerCase().includes(text.toLowerCase())  
     // );
-    
+
     return [];
   },
 });
