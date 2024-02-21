@@ -32,7 +32,7 @@ const RightSidebar = ({
       syncShapeInStorage,
     });
   };
-
+  
   // memoize the content of the right sidebar to avoid re-rendering on every mouse actions
   const memoizedContent = useMemo(
     () => (
@@ -54,6 +54,7 @@ const RightSidebar = ({
           fontSize={elementAttributes.fontSize}
           fontWeight={elementAttributes.fontWeight}
           handleInputChange={handleInputChange}
+ 
         />
 
         <Color
